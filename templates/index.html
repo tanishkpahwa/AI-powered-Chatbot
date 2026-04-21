@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JIMS Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; 
+            padding: 10px;
+            background-color: #f0f2f5;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #0056b3;
+            color: white;
+            border-radius: 8px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            flex-grow: 1;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin: 8px;
+        }
+        #chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #003d82;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: 20%;
+            border-radius: 10px 10px 0 10px;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+            margin-right: 20%;
+            border-radius: 10px 10px 10px 0;
+        } 
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='jims.jpg') }}" alt="JIMS Logo" class="logo">
+            <h1>jimmy <br>
+                Your Personal Assistant
+            </h1>
+            <img src="{{ url_for('static', filename='ipu_logo.png') }}" alt="IPU Logo" class="logo">
+        </div>
+        <div id="chat-messages"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ask about courses, admissions, facilities...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+
+            
+            addMessage(message, 'user-message');
+            userInput.value = '';
+
+            
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.response, 'bot-message');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request.', 'bot-message');
+            });
+        }
+
+        function addMessage(text, className) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + className;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        
+        window.onload = function() {
+            addMessage("Hi! I'm the JIMS Assistant. How can I help you today?\n\nYou can ask me about:\n- Courses (MCA|PGDM|BA ECO.(HONS)|BCA)\n- Admissions\n- Facilities\n- Placements", 'bot-message');
+        };
+    </script>
+</body>
+</html>
